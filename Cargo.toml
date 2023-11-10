@@ -7,4 +7,5 @@ keywords = ["otp", "hotp", "totp", "authenticator"]
 repository = "https://github.com/lbwa/one-time-password"
 
 [dependencies]
+base32 = "0.4.0"
 ring = "0.17.5"
