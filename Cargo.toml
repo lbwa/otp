@@ -1,0 +1,10 @@
+[package]
+name = "one-time-password"
+authors = ["Liu Bowen <bowen_dev@outlook.com>"]
+version = "0.1.0"
+edition = "2021"
+keywords = ["otp", "hotp", "totp", "authenticator"]
+repository = "https://github.com/lbwa/one-time-password"
+
+[dependencies]
+ring = "0.17.5"
