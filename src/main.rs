@@ -52,10 +52,10 @@ pub fn main() {
     let key = Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, &decoded_secret);
     let counter = 0;
 
-    let hopt = generate_hotp(&key, counter);
+    let hotp = generate_hotp(&key, counter);
     let totp = generate_totp(&key);
 
-    println!("HOTP: {}", hopt);
+    println!("HOTP: {}", hotp);
     println!("TOTP: {}", totp)
 }
 
