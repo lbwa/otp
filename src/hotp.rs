@@ -54,3 +54,17 @@ fn test_generate() {
     let HOTP(counter) = hotp;
     assert_eq!(counter, 2);
 }
+
+#[test]
+fn test_generate_with_base32_secret() {
+    use base32::{decode, Alphabet};
+    use ring::hmac::{Key, HMAC_SHA1_FOR_LEGACY_USE_ONLY};
+
+    let secret = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let decoded_secret = decode(Alphabet::RFC4648 { padding: false }, secret.as_ref())
+        .expect("failed to decode secret");
+    let key = Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, &decoded_secret);
+
+    let mut hotp = HOTP::new(0);
+    assert_eq!(hotp.generate(&key), "679988")
+}

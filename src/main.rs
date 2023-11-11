@@ -21,14 +21,3 @@ pub fn main() {
     let totp_code = totp.generate(&key);
     println!("TOTP: {}", totp_code);
 }
-
-#[test]
-fn test_hotp() {
-    let secret = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let decoded_secret = decode(Alphabet::RFC4648 { padding: false }, secret.as_ref())
-        .expect("failed to decode secret");
-    let key = Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, &decoded_secret);
-
-    let mut hotp = HOTP::new(0);
-    assert_eq!(hotp.generate(&key), "679988")
-}
