@@ -99,18 +99,24 @@ fn test_generate() {
         assert_eq!(hotp.generate(), "983918");
     }
 
-    let mut hotp = HOTPBuilder::new()
-        .base32_secret("12345678901234567890")
-        .build()
-        .expect("failed to initialize HOTP client");
+    for mut hotp in [
+        HOTPBuilder::new()
+            .key("12345678901234567890".as_bytes().to_owned())
+            .build()
+            .expect("failed to initialize HOTP client"),
+        HOTPBuilder::new()
+            .base32_secret("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ")
+            .build()
+            .expect("failed to initialize HOTP client"),
+    ] {
+        for _ in 0..2 {
+            assert_eq!(hotp.generate(), "755224");
+        }
 
-    for _ in 0..2 {
-        assert_eq!(hotp.generate(), "755224");
-    }
+        hotp.increment_counter();
 
-    hotp.increment_counter();
-
-    for _ in 0..2 {
-        assert_eq!(hotp.generate(), "287082");
+        for _ in 0..2 {
+            assert_eq!(hotp.generate(), "287082");
+        }
     }
 }

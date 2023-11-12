@@ -7,7 +7,10 @@ macro_rules! secret_encoding {
                 if let Some(decoded_key) = decode(Alphabet::RFC4648 { padding: false }, secret) {
                     Some(decoded_key)
                 } else {
-                    Some(vec![])
+                    panic!(
+                        "The secret({:?}) isn't a valid base32 encoding string. replace .base32_secret(secret) with .key(secret) or check the secret encoding to continue.",
+                        secret
+                    );
                 };
             self
         }
