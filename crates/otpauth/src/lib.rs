@@ -4,9 +4,9 @@
 //! ## HOTP
 //!
 //! ```
-//! use otpauth::HOTPBuilder;
+//! use otpauth::HotpBuilder;
 //!
-//! let mut hotp_client = HOTPBuilder::new()
+//! let mut hotp_client = HotpBuilder::new()
 //!   .base32_secret("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ")
 //!   .build()
 //!   .expect("failed to initialize HOTP client");
@@ -20,8 +20,8 @@
 //! ## TOTP
 //!
 //! ```
-//! use otpauth::TOTPBuilder;
-//! let mut totp_cleint = TOTPBuilder::new()
+//! use otpauth::TotpBuilder;
+//! let mut totp_cleint = TotpBuilder::new()
 //!   .base32_secret("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ")
 //!   .build()
 //!   .expect("failed to initialize TOTP client");
@@ -32,5 +32,5 @@ mod hotp;
 mod otp;
 mod totp;
 
-pub use hotp::HOTPBuilder;
-pub use totp::TOTPBuilder;
+pub use hotp::HotpBuilder;
+pub use totp::TotpBuilder;

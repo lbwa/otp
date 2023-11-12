@@ -25,14 +25,14 @@ fn truncated_hash(hmac: &Tag) -> u32 {
 /// - RFC 4226: <https://datatracker.ietf.org/doc/html/rfc4226>
 /// - Generating an HOTP value: <https://datatracker.ietf.org/doc/html/rfc4226#section-5.3>
 #[derive(Default, Debug, Builder)]
-pub struct HOTP {
+pub struct Hotp {
     #[builder(default)]
     counter: u64,
     #[builder(default)]
     key: Vec<u8>,
 }
 
-impl HOTPBuilder {
+impl HotpBuilder {
     pub fn new() -> Self {
         Self::default()
     }
@@ -40,16 +40,16 @@ impl HOTPBuilder {
     secret_encoding!(Self);
 }
 
-impl HOTP {
+impl Hotp {
     pub fn increment_counter(&mut self) -> &mut Self {
-        let HOTP { counter, .. } = self;
+        let Hotp { counter, .. } = self;
         *counter += 1;
         self
     }
 
     pub fn generate(&self) -> String {
         let hash_key = Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, &self.key);
-        let HOTP { counter, .. } = self;
+        let Hotp { counter, .. } = self;
         let counter_bytes = counter.to_be_bytes();
         let hashed_tag = sign(&hash_key, &counter_bytes);
         let code: u32 = truncated_hash(&hashed_tag);
@@ -80,7 +80,7 @@ impl HOTP {
 
 #[test]
 fn test_generate() {
-    let mut hotp = HOTPBuilder::new()
+    let mut hotp = HotpBuilder::new()
         .base32_secret("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         .build()
         .unwrap();
@@ -100,11 +100,11 @@ fn test_generate() {
     }
 
     for mut hotp in [
-        HOTPBuilder::new()
+        HotpBuilder::new()
             .key("12345678901234567890".as_bytes().to_owned())
             .build()
             .expect("failed to initialize HOTP client"),
-        HOTPBuilder::new()
+        HotpBuilder::new()
             .base32_secret("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ")
             .build()
             .expect("failed to initialize HOTP client"),

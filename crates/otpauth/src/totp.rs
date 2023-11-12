@@ -1,4 +1,4 @@
-use crate::{hotp::HOTPBuilder, otp::secret_encoding};
+use crate::{hotp::HotpBuilder, otp::secret_encoding};
 use derive_builder::Builder;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -10,11 +10,11 @@ const TOTP_PERIOD: u64 = 30u64;
 /// - RFC 6238: <https://datatracker.ietf.org/doc/html/rfc6238>
 /// - wiki: <https://en.wikipedia.org/wiki/Time-based_one-time_password>
 #[derive(Default, Debug, Builder)]
-pub struct TOTP {
+pub struct Totp {
     key: Vec<u8>,
 }
 
-impl TOTPBuilder {
+impl TotpBuilder {
     pub fn new() -> Self {
         Self::default()
     }
@@ -22,9 +22,9 @@ impl TOTPBuilder {
     secret_encoding!(Self);
 }
 
-impl TOTP {
+impl Totp {
     pub fn generate(&mut self) -> String {
-        let hotp_client = HOTPBuilder::new()
+        let hotp_client = HotpBuilder::new()
             .key(self.key.to_owned())
             .counter(
                 SystemTime::now()

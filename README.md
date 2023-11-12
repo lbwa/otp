@@ -11,9 +11,9 @@ cargo add otpauth
 ```
 
 ```rs
-use otpuath::TOTPBuilder;
+use otpuath::TotpBuilder;
 
-let mut totp_cleint = TOTPBuilder::new()
+let mut totp_cleint = TotpBuilder::new()
     .base32_secret(base32_secret)
     .build()
     .expect("failed to initialize TOTP client");
