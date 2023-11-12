@@ -1,11 +1,23 @@
-# one-time password
+# otpauth
 
 [![tests_status](https://github.com/lbwa/otp/actions/workflows/tests.yml/badge.svg)](https://github.com/lbwa/otp/actions/workflows/tests.yml)
 
-HOTP and TOTP algorithm.
+This package is a library designed to provide out-of-box HOTP and TOTP clients to generate one-time passwords.
 
-## usage
+## Usage
 
 ```bash
-cargo run
+cargo add otpauth
+```
+
+```rs
+use otpuath::TotpBuilder;
+
+let mut totp_cleint = TotpBuilder::new()
+    .base32_secret(base32_secret)
+    .build()
+    .expect("failed to initialize TOTP client");
+
+let totp_code = totp_cleint.generate();
+println!("TOTP: {}", totp_code);
 ```
