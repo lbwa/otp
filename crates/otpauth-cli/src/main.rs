@@ -1,7 +1,6 @@
 use otpauth::{HOTPBuilder, TOTPBuilder};
 
 pub fn main() {
-    // Generally, secret (AKA, setup key) is a base32 string which should be decoded before hashed
     let base32_secret = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     let hotp_client = HOTPBuilder::new()
