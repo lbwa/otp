@@ -1,5 +1,6 @@
 [workspace]
-members = ["crates/otpauth", "crates/otpauth-cli"]
+members = ["crates/otps", "crates/otps-cli"]
+resolver = "2"
 
 [workspace.package]
 authors = ["Liu Bowen <asyncmode@outlook.com>"]

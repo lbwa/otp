@@ -1,4 +1,4 @@
-use otpauth::{HotpBuilder, TotpBuilder};
+use otps::{HotpBuilder, TotpBuilder};
 
 pub fn main() {
     let base32_secret = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";

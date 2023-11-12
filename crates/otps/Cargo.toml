@@ -1,10 +1,13 @@
 [package]
-name = "otpauth"
+name = "otps"
 authors = ["Liu Bowen <asyncmode@outlook.com>"]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 keywords = ["otp", "hotp", "totp", "authenticator"]
-repository = "https://github.com/lbwa/one-time-password"
+description = "Out-of-box HOTP and TOTP client to generate one-time password"
+repository = "https://github.com/lbwa/otp"
+homepage = "https://docs.rs/otps"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
