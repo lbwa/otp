@@ -8,4 +8,5 @@ repository = "https://github.com/lbwa/one-time-password"
 
 [dependencies]
 base32 = "0.4.0"
+derive_builder = "0.12.0"
 ring = "0.17.5"
