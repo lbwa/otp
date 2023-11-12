@@ -1,9 +1,10 @@
-use base32::{decode, Alphabet};
 use derive_builder::Builder;
 use ring::{
     constant_time::verify_slices_are_equal,
     hmac::{sign, Key, Tag, HMAC_SHA1_FOR_LEGACY_USE_ONLY},
 };
+
+use crate::otp::secret_encoding;
 
 /// Number of digits in an HOTP value; system parameter
 const OTP_DIGITS: usize = 6;
@@ -27,24 +28,16 @@ fn truncated_hash(hmac: &Tag) -> u32 {
 pub struct HOTP {
     #[builder(default)]
     counter: u64,
-    #[builder(setter(custom), default)]
-    secret: Vec<u8>,
+    #[builder(default)]
+    key: Vec<u8>,
 }
 
 impl HOTPBuilder {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self::default()
     }
 
-    fn secret(&mut self, secret: &str) -> &mut Self {
-        self.secret =
-            if let Some(decoded_secret) = decode(Alphabet::RFC4648 { padding: false }, secret) {
-                Some(decoded_secret)
-            } else {
-                Some(secret.as_bytes().to_owned())
-            };
-        self
-    }
+    secret_encoding!(Self);
 }
 
 impl HOTP {
@@ -55,7 +48,7 @@ impl HOTP {
     }
 
     pub fn generate(&self) -> String {
-        let hash_key = Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, &self.secret);
+        let hash_key = Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, &self.key);
         let HOTP { counter, .. } = self;
         let counter_bytes = counter.to_be_bytes();
         let hashed_tag = sign(&hash_key, &counter_bytes);
@@ -69,13 +62,13 @@ impl HOTP {
         }
 
         let hashed_tag = sign(
-            &Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, &self.secret),
+            &Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, &self.key),
             code.as_bytes(),
         );
 
         let ref_code = self.generate().into_bytes();
         let hashed_ref_tag = sign(
-            &Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, &self.secret),
+            &Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, &self.key),
             &ref_code,
         );
 
@@ -88,7 +81,7 @@ impl HOTP {
 #[test]
 fn test_generate() {
     let mut hotp = HOTPBuilder::new()
-        .secret("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        .base32_secret("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         .build()
         .unwrap();
 
@@ -107,7 +100,7 @@ fn test_generate() {
     }
 
     let mut hotp = HOTPBuilder::new()
-        .secret("12345678901234567890")
+        .base32_secret("12345678901234567890")
         .build()
         .expect("failed to initialize HOTP client");
 

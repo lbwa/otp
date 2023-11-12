@@ -1,5 +1,5 @@
 [package]
-name = "one-time-password"
+name = "otpauth"
 authors = ["Liu Bowen <bowen_dev@outlook.com>"]
 version = "0.1.0"
 edition = "2021"
