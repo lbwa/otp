@@ -2,9 +2,16 @@
 name = "otps-cli"
 version = "0.1.0"
 edition = "2021"
+keywords = ["otp", "hotp", "totp", "authenticator"]
+description = "HOTP and TOTP clients to generate one-time password"
+repository = "https://github.com/lbwa/otp"
+homepage = "https://docs.rs/otps"
+license = "MIT"
 publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+clap = { version = "4.4.8", features = ["derive"] }
 otps = { version = "*", path = "../otps" }
+rustyline = "12.0.0"
