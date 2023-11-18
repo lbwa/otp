@@ -47,6 +47,10 @@ impl Hotp {
         self
     }
 
+    pub fn get_counter(&self) -> u64 {
+        self.counter
+    }
+
     pub fn generate(&self) -> String {
         let hash_key = Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, &self.key);
         let Hotp { counter, .. } = self;
