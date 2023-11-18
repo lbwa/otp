@@ -4,7 +4,7 @@ pub const WORKING_DIR: &str = env!("HOME");
 
 pub const WORKING_FILENAME: &str = ".otps";
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum ClientType {
     Hotp,
     Totp,

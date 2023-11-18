@@ -7,6 +7,7 @@ use rustyline::{error::ReadlineError, DefaultEditor};
 use std::{path::PathBuf, process::ExitCode};
 
 mod commons;
+mod fs;
 mod key_chains;
 
 #[derive(Parser)]
