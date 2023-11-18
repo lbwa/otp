@@ -1,7 +1,9 @@
-use crate::commons::ClientType;
+use crate::{
+    commons::ClientType,
+    fs::{create_file_reader, create_file_writer},
+};
 use std::{
-    fs::{write, File},
-    io::{BufRead, BufReader, Error, ErrorKind, Result},
+    io::{BufRead, Error, ErrorKind, Result, Write},
     path::PathBuf,
 };
 
@@ -10,27 +12,50 @@ pub struct KeyChains {
 }
 
 impl KeyChains {
-    pub fn create_file_reader(&self) -> Result<BufReader<File>> {
-        let file = File::open(&self.file_path)?;
-        Ok(BufReader::new(file))
-    }
-
     pub fn new(file: PathBuf) -> Self {
         Self { file_path: file }
     }
 
-    pub fn set(&self, key: String) -> Result<()> {
-        write(self.file_path.to_owned(), key)
+    pub fn alter(&self, key: String, value: String) -> Result<()> {
+        let reader = create_file_reader(&self.file_path)?;
+
+        let rows = reader
+            .lines()
+            .filter_map(|l| l.ok())
+            .fold(vec![], |mut rows: Vec<_>, line| {
+                match line.split_once(" ") {
+                    Some((name, ..)) => {
+                        rows.push(if name == key {
+                            value.to_owned()
+                        } else {
+                            line.to_owned()
+                        });
+                    }
+                    None => {
+                        rows.push(line.to_owned());
+                    }
+                }
+                return rows;
+            });
+
+        // `File::create` calling must be after `rows` identifier, otherwise, target file is empty
+        let mut writer = create_file_writer(&self.file_path)?;
+
+        for line in rows {
+            // let _ = writer.write(line.as_bytes())?;
+            let _ = writeln!(writer, "{}", line)?;
+        }
+        Ok(())
     }
 
-    pub fn get(&self, target_name: &str) -> Result<Key> {
+    pub fn query(&self, target_name: &str) -> Result<Key> {
         // let file_content = fs::read_to_string(&self.file_path)?;
         // let lines = file_content
         //     .lines()
         //     .map(String::from)
         //     .collect::<Vec<String>>();
 
-        self.create_file_reader()?
+        create_file_reader(&self.file_path)?
             .lines()
             .find_map(|line_result| {
                 if let Some(line) = line_result.ok() {
@@ -76,8 +101,7 @@ impl KeyChains {
     }
 
     pub fn get_endpoint_names(&self) -> Result<Vec<String>> {
-        Ok(self
-            .create_file_reader()?
+        Ok(create_file_reader(&self.file_path)?
             .lines()
             .fold(vec![], |mut acc, line_result| {
                 if let Ok(line) = line_result {
@@ -88,6 +112,11 @@ impl KeyChains {
                 }
                 acc
             }))
+    }
+
+    #[cfg(test)]
+    fn set(&self, data: String) -> Result<()> {
+        create_file_writer(&self.file_path)?.write_all(data.as_bytes())
     }
 }
 
@@ -109,4 +138,52 @@ impl Key {
     pub fn get_counter(&self) -> Option<u64> {
         self.counter
     }
+}
+
+#[test]
+fn test_key_chains() {
+    use std::env::temp_dir;
+    use std::fs;
+
+    let key_chains = KeyChains::new(temp_dir().join(".otps"));
+    key_chains
+        .set(
+            vec![
+                "github 6 this_is_github_secret totp",
+                "google 6 this_is_google_secret totp",
+                "meta 6 this_is_meta_secret totp",
+                "twitter 6 this_is_meta_secret totp",
+            ]
+            .iter()
+            .map(|v| v.to_string())
+            .collect::<Vec<String>>()
+            .join("\n"),
+        )
+        .expect("should create successful");
+
+    key_chains
+        .alter("google".to_owned(), "google 6 1234 totp".to_owned())
+        .expect("should alter successful");
+
+    assert!(
+        fs::metadata(&key_chains.file_path).is_ok(),
+        "target file ({:?}) should exists",
+        &key_chains.file_path
+    );
+
+    assert!(
+        fs::metadata(&key_chains.file_path).unwrap().len() > 0,
+        "Target file shouldn't be empty"
+    );
+
+    let ret = key_chains.query("google");
+    assert!(ret.is_ok(), "Should return `google` result");
+
+    let key = key_chains.query("google").unwrap();
+    assert!(
+        key.get_counter().is_none(),
+        "Should return None in `counter` field"
+    );
+    assert_eq!(key.get_client_type(), ClientType::Totp);
+    assert_eq!(key.get_secret(), "1234")
 }
