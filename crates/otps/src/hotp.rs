@@ -41,6 +41,7 @@ impl HotpBuilder {
 }
 
 impl Hotp {
+    /// Refer to [RFC 4226 - section 7.2](https://datatracker.ietf.org/doc/html/rfc4226#section-7.2)
     pub fn increment_counter(&mut self) -> &mut Self {
         let Hotp { counter, .. } = self;
         *counter += 1;
