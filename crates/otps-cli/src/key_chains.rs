@@ -1,6 +1,6 @@
 use crate::{
-    commons::ClientType,
     fs::{create_file_reader, create_file_writer},
+    key::Key,
 };
 use std::{
     io::{BufRead, Error, ErrorKind, Result, Write},
@@ -63,33 +63,10 @@ impl KeyChains {
                     if data.len() < 4 || data[0].is_empty() || data[2].is_empty() {
                         return None;
                     }
-
-                    match data[3].into() {
-                        ClientType::Hotp => {
-                            let (name, secret, counter) = (data[0], data[2], data[4]);
-                            if name == target_name {
-                                Some(Key {
-                                    r#type: ClientType::Hotp,
-                                    secret: secret.to_owned(),
-                                    counter: Some(counter.parse().ok()?),
-                                })
-                            } else {
-                                None
-                            }
-                        }
-                        ClientType::Totp => {
-                            let (name, secret) = (data[0], data[2]);
-                            if name == target_name {
-                                Some(Key {
-                                    r#type: ClientType::Totp,
-                                    secret: secret.to_owned(),
-                                    counter: None,
-                                })
-                            } else {
-                                None
-                            }
-                        }
+                    if target_name == data[0] {
+                        return Some(line.as_str().into());
                     }
+                    None
                 } else {
                     None
                 }
@@ -120,28 +97,9 @@ impl KeyChains {
     }
 }
 
-pub struct Key {
-    r#type: ClientType,
-    secret: String,
-    counter: Option<u64>,
-}
-
-impl Key {
-    pub fn get_client_type(&self) -> ClientType {
-        self.r#type.to_owned()
-    }
-
-    pub fn get_secret(&self) -> &str {
-        &self.secret
-    }
-
-    pub fn get_counter(&self) -> Option<u64> {
-        self.counter
-    }
-}
-
 #[test]
 fn test_key_chains() {
+    use crate::commons::ClientType;
     use std::env::temp_dir;
     use std::fs;
 
@@ -184,6 +142,10 @@ fn test_key_chains() {
         key.get_counter().is_none(),
         "Should return None in `counter` field"
     );
-    assert_eq!(key.get_client_type(), ClientType::Totp);
-    assert_eq!(key.get_secret(), "1234")
+    assert_eq!(
+        key.get_client_type(),
+        &ClientType::Totp,
+        "Should be TOTP client type"
+    );
+    assert_eq!(key.get_secret(), "1234", "Should be TOTP code ")
 }
