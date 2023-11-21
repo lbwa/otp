@@ -2,12 +2,14 @@ use crate::key_chains::KeyChains;
 use arboard::Clipboard;
 use clap::{Parser, Subcommand};
 use commons::ClientType;
+use key::Key;
 use otps::{HotpBuilder, TotpBuilder};
 use rustyline::{error::ReadlineError, DefaultEditor};
 use std::{path::PathBuf, process::ExitCode};
 
 mod commons;
 mod fs;
+mod key;
 mod key_chains;
 
 #[derive(Parser)]
@@ -24,7 +26,7 @@ enum Commands {
         endpoint: String,
         /// The initial counter for creating HOTP
         #[arg(long, short)]
-        counter: Option<usize>,
+        counter: Option<u64>,
     },
     /// List all available endpoints
     List,
@@ -76,15 +78,14 @@ fn main() -> ExitCode {
             } else {
                 ClientType::Totp
             };
-            let mut chip = format!("{} {} {} {}", endpoint, 6, secret, client_type);
 
-            if let Some(initial_counter) = counter {
-                chip += &format!(" {}", initial_counter);
-            }
-
-            chip.push_str("\n");
-
-            if let Err(error) = key_chains.set(chip) {
+            let key = Key {
+                name: endpoint.to_owned(),
+                r#type: client_type,
+                secret,
+                counter,
+            };
+            if let Err(error) = key_chains.alter(endpoint, key.into()) {
                 eprintln!("KeyChain exception: {}", error);
                 ExitCode::FAILURE
             } else {
@@ -105,7 +106,7 @@ fn main() -> ExitCode {
             clip,
             increment,
         }) => {
-            if let Ok(key) = key_chains.get(&endpoint) {
+            if let Ok(key) = key_chains.query(&endpoint) {
                 let client_type = key.get_client_type();
                 let code = match client_type {
                     ClientType::Hotp => {
@@ -115,12 +116,17 @@ fn main() -> ExitCode {
                             .build()
                             .expect("Failed to initialize HOTP client");
 
-                        let code = hotp_client.generate();
                         if increment {
-                            let counter = hotp_client.increment_counter().get_counter();
-                            todo!("write new counter ({}) value into database file", counter)
+                            let _ = key_chains.alter(
+                                endpoint.to_owned(),
+                                Key {
+                                    counter: Some(hotp_client.increment_counter().get_counter()),
+                                    ..key.clone()
+                                }
+                                .into(),
+                            );
                         }
-                        code
+                        hotp_client.generate()
                     }
                     ClientType::Totp => {
                         let mut totp_client = TotpBuilder::new()
@@ -130,7 +136,7 @@ fn main() -> ExitCode {
                         totp_client.generate()
                     }
                 };
-                println!("{}: {}", client_type, code);
+                println!("{} for {}: {}", client_type, endpoint, code);
                 if clip {
                     let mut clipboard =
                         Clipboard::new().expect("Failed to initial clipboard writer, skip it");
